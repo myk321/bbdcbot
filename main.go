@@ -123,7 +123,7 @@ func main() {
 						//then split on " and take the second element to get 1893904
 						slotID := strings.Split(strings.Split(strings.Split(substr, ",")[6], "value=")[1], "\"")[1]
 						log.Println("Booking slot")
-						req, err = http.NewRequest("POST", "http://www.bbdc.sg/bbdc/b-2-pLessonBookingDetails.asp",
+						req, err = http.NewRequest("POST", "http://www.bbdc.sg/bbdc/b-2-pLessonBooking.asp",
 							strings.NewReader(paymentForm(slotID).Encode()))
 						//req.AddCookie(aspxanon)
 						req.AddCookie(sessionID)
