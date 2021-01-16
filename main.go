@@ -183,7 +183,7 @@ func slotPage(accountID string,  sessionID *http.Cookie, client *http.Client) (s
 		return "", errors.New("Error sending request: " + err.Error())
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
-	log.Println("booking form contents:" + body)
+	log.Println("booking form contents:" + string(body))	//for debugging
 	return string(body), nil
 }
 
