@@ -27,9 +27,6 @@ func main() {
 	errCheck(err, "Failed to fetch chat IDs")
 
 	client := &http.Client{}
-	jar := &myjar{} // add cookie jar so you can store the session ID cookie
-	jar.jar = make(map[string][]*http.Cookie)
-	client.Jar = jar
 
 	//for heroku
 	go func() {
@@ -38,12 +35,15 @@ func main() {
 	}()
 	for {
 		//fetching cookies
+		log.Println("Fetching cookies")
+		sessionID = fetchCookies()
+		
 		log.Println("Logging in")
-		err = logIn(os.Getenv("NRIC"), os.Getenv("PASSWORD"), client)
+		err = logIn(os.Getenv("NRIC"), os.Getenv("PASSWORD"), sessionID, client)
 		errCheck(err, "Error logging in")
 
 		log.Println("Fetching slots")
-		rawSlots, err := slotPage(os.Getenv("ACCOUNT_ID"), client)
+		rawSlots, err := slotPage(os.Getenv("ACCOUNT_ID"), sessionID, client)
 		errCheck(err, "Error getting slot page")
 
 		log.Println("Parsing slots")
@@ -54,7 +54,7 @@ func main() {
 		valids := validSlots(slots)
 		for _, validSlot := range valids { //for all the slots which meet the rule (i.e. within 10 days of now)
 			log.Println("SlotID: " + validSlot.SlotID)
-			book(os.Getenv("ACCOUNT_ID"), validSlot, client)
+			book(os.Getenv("ACCOUNT_ID"), validSlot, sessionID, client)
 			alert("Slot available (and booked) on " + validSlot.Date.Format("2 Jan 2006 (Mon)") + " " + os.Getenv("SESSION_"+validSlot.SessionNumber), bot, chatID)
 		}
 		if len(valids) != 0 {
@@ -89,12 +89,14 @@ func validSlots(slots []DrivingSlot) []DrivingSlot {
 	return valids
 }
 
-func book(accountID string, slot DrivingSlot, client *http.Client) error {
+func book(accountID string, slot DrivingSlot, sessionID *Cookie, client *http.Client) error {
 	req, err := http.NewRequest("POST", "http://www.bbdc.sg/bbdc/b-2-pLessonBookingDetails.asp",
 		strings.NewReader(paymentForm(accountID, slot.SlotID).Encode()))
 	if err != nil {
 		return errors.New("Error creating request: " + err.Error())
 	}
+	req.AddCookie(sessionID)
+	req.AddCookie(&http.Cookie{Name: "language", Value: "en-US"})
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	_, err = client.Do(req)
 	if err != nil {
@@ -104,20 +106,11 @@ func book(accountID string, slot DrivingSlot, client *http.Client) error {
 	return nil
 }
 
-type myjar struct {
-	jar map[string][]*http.Cookie
-}
-
-func (p *myjar) SetCookies(u *url.URL, cookies []*http.Cookie) {
-	fmt.Printf("The URL is : %s\n", u.String())
-	fmt.Printf("The cookie being set is : %s\n", cookies)
-	p.jar[u.Host] = cookies
-}
-
-func (p *myjar) Cookies(u *url.URL) []*http.Cookie {
-	fmt.Printf("The URL is : %s\n", u.String())
-	fmt.Printf("Cookie being returned is : %s\n", p.jar[u.Host])
-	return p.jar[u.Host]
+func fetchCookies() (*http.Cookie) {
+	resp, err := http.Get("http://www.bbdc.sg/bbdc/bbdc_web/newheader.asp")
+	errCheck(err, "Error fetching cookies (sessionID)")
+	sessionID := resp.Cookies()[0]
+	return sessionID
 }
 
 // DrivingSlot represents a CDC slot to go for driving lessons
@@ -127,7 +120,7 @@ type DrivingSlot struct {
 	SessionNumber string
 }
 
-func logIn(nric string, pwd string, client *http.Client) error {
+func logIn(nric string, pwd string, sessionID *Cookie, client *http.Client) error {
 	loginForm := url.Values{}
 	loginForm.Add("txtNRIC", nric)
 	loginForm.Add("txtpassword", pwd)
@@ -136,6 +129,8 @@ func logIn(nric string, pwd string, client *http.Client) error {
 	if err != nil {
 		return errors.New("Error creating request: " + err.Error())
 	}
+	req.AddCookie(sessionID)
+	req.AddCookie(&http.Cookie{Name: "language", Value: "en-US"})
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	_, err = client.Do(req)
@@ -174,12 +169,14 @@ func extractSlots(slotPage string) ([]DrivingSlot, error) {
 	return slots, nil
 }
 
-func slotPage(accountID string, client *http.Client) (string, error) {
+func slotPage(accountID string,  sessionID *Cookie, client *http.Client) (string, error) {
 	req, err := http.NewRequest("POST", "http://www.bbdc.sg/bbdc/b-2-pLessonBooking1.asp",
 		strings.NewReader(bookingForm(accountID).Encode()))
 	if err != nil {
 		return "", errors.New("Error creating request: " + err.Error())
 	}
+	req.AddCookie(sessionID)
+	req.AddCookie(&http.Cookie{Name: "language", Value: "en-US"})
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := client.Do(req)
 	if err != nil {
