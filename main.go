@@ -36,7 +36,7 @@ func main() {
 	for {
 		//fetching cookies
 		log.Println("Fetching cookies")
-		sessionID = fetchCookies()
+		sessionID := fetchCookies()
 		
 		log.Println("Logging in")
 		err = logIn(os.Getenv("NRIC"), os.Getenv("PASSWORD"), sessionID, client)
@@ -89,7 +89,7 @@ func validSlots(slots []DrivingSlot) []DrivingSlot {
 	return valids
 }
 
-func book(accountID string, slot DrivingSlot, sessionID *Cookie, client *http.Client) error {
+func book(accountID string, slot DrivingSlot, sessionID *http.Cookie, client *http.Client) error {
 	req, err := http.NewRequest("POST", "http://www.bbdc.sg/bbdc/b-2-pLessonBookingDetails.asp",
 		strings.NewReader(paymentForm(accountID, slot.SlotID).Encode()))
 	if err != nil {
@@ -120,7 +120,7 @@ type DrivingSlot struct {
 	SessionNumber string
 }
 
-func logIn(nric string, pwd string, sessionID *Cookie, client *http.Client) error {
+func logIn(nric string, pwd string, sessionID *http.Cookie, client *http.Client) error {
 	loginForm := url.Values{}
 	loginForm.Add("txtNRIC", nric)
 	loginForm.Add("txtpassword", pwd)
@@ -169,7 +169,7 @@ func extractSlots(slotPage string) ([]DrivingSlot, error) {
 	return slots, nil
 }
 
-func slotPage(accountID string,  sessionID *Cookie, client *http.Client) (string, error) {
+func slotPage(accountID string,  sessionID *http.Cookie, client *http.Client) (string, error) {
 	req, err := http.NewRequest("POST", "http://www.bbdc.sg/bbdc/b-2-pLessonBooking1.asp",
 		strings.NewReader(bookingForm(accountID).Encode()))
 	if err != nil {
