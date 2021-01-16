@@ -163,6 +163,8 @@ func extractSlots(slotPage string) ([]DrivingSlot, error) {
 		slotID := strings.Split(strings.Split(strings.Split(slotSection, ",")[6], "value=")[1], "\"")[1]
 		slots = append(slots, DrivingSlot{SlotID: slotID, Date: day, SessionNumber: sessionNum})
 	}
+	
+	log.Println("The book page has a total of " + strconv.Itoa(len(slotSections)) + " available for booking, of which " + strconv.Itoa(len(slots)) + " slots will examined further")
 
 	return slots, nil
 }
