@@ -52,7 +52,7 @@ func main() {
 
 		log.Println("Extracting valid slots")
 		valids := validSlots(slots)
-		log.Println("Of a total of " + len(slots) + " slots " + len(valids) + " are valid slots for booking"
+		log.Println("Of a total of " + len(slots) + " slots " + len(valids) + " are valid slots for booking")
 		for _, validSlot := range valids { //for all the slots which meet the rule (i.e. within 10 days of now)
 			log.Println("SlotID: " + validSlot.SlotID)
 			book(os.Getenv("ACCOUNT_ID"), validSlot, sessionID, client)
