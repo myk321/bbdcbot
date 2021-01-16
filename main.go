@@ -27,15 +27,13 @@ func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
 	errCheck(err, "Failed to start telegram bot")
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	chatIDs, err := parseChatIDList((os.Getenv("CHAT_ID")))
+	chatID, err := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
 	errCheck(err, "Failed to fetch chat IDs")
 
 	client := &http.Client{}
 	jar := &myjar{} // add cookie jar so you can store the session ID cookie
 	jar.jar = make(map[string][]*http.Cookie)
 	client.Jar = jar
-
-	tgclient := AlertService{Bot: bot, ReceiverIDs: chatIDs}
 
 	//for heroku
 	go func() {
@@ -72,7 +70,7 @@ func main() {
 		//Sleep for a random duration
 		r := rand.Intn(300) + 120
 		s := fmt.Sprint(time.Duration(r) * time.Second)
-		alert("Retrigger in: "+s, bot, chatID)
+		//alert("Retrigger in: "+s, bot, chatID)
 		time.AfterFunc(30*time.Second, ping)
 		time.Sleep(time.Duration(r) * time.Second)
 	}
@@ -131,32 +129,6 @@ type DrivingSlot struct {
 	SlotID        string
 	Date          time.Time
 	SessionNumber string
-}
-
-// AlertService is a service for alerting many telegram users
-type AlertService struct {
-	Bot         *tgbotapi.BotAPI
-	ReceiverIDs []int64
-}
-
-// MessageAll sends a message to all chats in the alert service
-func (as *AlertService) MessageAll(msg string) {
-	for _, chatID := range as.ReceiverIDs {
-		alert(msg, as.Bot, chatID)
-	}
-}
-
-func parseChatIDList(list string) ([]int64, error) {
-	chatIDStrings := strings.Split(list, ",")
-	chatIDs := make([]int64, len(chatIDStrings))
-	for i, chatIDString := range chatIDStrings {
-		chatID, err := strconv.ParseInt(strings.TrimSpace(chatIDString), 10, 64)
-		chatIDs[i] = chatID
-		if err != nil {
-			return nil, err
-		}
-	}
-	return chatIDs, nil
 }
 
 func logIn(nric string, pwd string, client *http.Client) error {
