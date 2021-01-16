@@ -19,9 +19,6 @@ import (
 )
 
 func main() {
-	if os.Getenv("IS_HEROKU") != "TRUE" {
-		loadEnvironmentalVariables()
-	}
 
 	//set up telegram info
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
@@ -198,14 +195,6 @@ func alert(msg string, bot *tgbotapi.BotAPI, chatID int64) {
 	telegramMsg := tgbotapi.NewMessage(chatID, msg)
 	bot.Send(telegramMsg)
 	log.Println("Sent message to " + strconv.FormatInt(chatID, 10) + ": " + msg)
-}
-
-func loadEnvironmentalVariables() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Print("Error loading environmental variables: ")
-		log.Fatal(err.Error())
-	}
 }
 
 func paymentForm(accountID string, slotID string) url.Values {
