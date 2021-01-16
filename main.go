@@ -76,11 +76,9 @@ func main() {
 func validSlots(slots []DrivingSlot) []DrivingSlot {
 	valids := make([]DrivingSlot, 0)
 	for _, slot := range slots {
-		if slot.Date.Sub(time.Now()) < 10*(24*time.Hour) { // if slot is within 10 days of now
-			if slot.Date.Sub(time.Now()) > 1*(24*time.Hour) { // if slot is more than 24 hours from now
-				if slot.SessionNumber != "1" { // slot can't be today
-					valids = append(valids, slot)
-				}
+		if slot.Date.Sub(time.Now()) < strconv.Atoi(os.Getenv("DAYSTOLOOKAHEAD"))*(24*time.Hour) { // if slot is within DAYSTOLOOKAHEAD days of now
+			if slot.Date.Sub(time.Now()) > 1*(12*time.Hour) { // if slot is more than 12 hours from now
+				valids = append(valids, slot)
 			}
 
 		}
