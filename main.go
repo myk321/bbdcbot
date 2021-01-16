@@ -72,7 +72,8 @@ func main() {
 // returns slots that should be autobooked/alerted about
 func validSlots(slots []DrivingSlot) []DrivingSlot {
 	valids := make([]DrivingSlot, 0)
-	daysToLookAhead := strconv.Atoi(os.Getenv("DAYSTOLOOKAHEAD"))
+	daysToLookAhead, err := strconv.Atoi(os.Getenv("DAYSTOLOOKAHEAD"))
+	errCheck(err, "Failed to understand the number of days to look ahead days - DAYSTOLOOKAHEAD - from the enviroment")
 	for _, slot := range slots {
 		daysFromNow := int(slot.Date.Sub(time.Now()).Hours()/24) + 1
 		if daysFromNow < daysToLookAhead { // if slot is within DAYSTOLOOKAHEAD days of now
