@@ -17,16 +17,6 @@ import (
 )
 
 func main() {
-	// loadEnvironmentalVariables()
-
-	//log to file as well as stdout
-	// f, err := os.OpenFile("output.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	// if err != nil {
-	// 	log.Fatalf("error opening file: %v", err)
-	// }
-	// defer f.Close()
-	// mw := io.MultiWriter(os.Stdout, f)
-	// log.SetOutput(mw)
 
 	//set up telegram info
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
@@ -93,12 +83,6 @@ func main() {
 			alert("Available slot on "+day+" from "+bookingData[4]+" to "+bookingData[5],
 				bot, chatID)
 			validSlot := true
-			// if (strings.Contains(day, "Sat")) && (monthInt == "09" || monthInt == "10" || monthInt == "11" || monthInt == "12") {
-			// 	alert("Slot that matches condition (09, 10, 11, 12, Saturdays) on "+day+" from "+bookingData[4]+" to "+bookingData[5],
-			// 		bot, chatID)
-			// 	foundSlot = true
-			// 	validSlot = true
-			// }
 
 			if validSlot {
 				//Check if the slot found is within 10 days to determine whether to auto book
@@ -153,7 +137,7 @@ func main() {
 		r := rand.Intn(300) + 120
 		s := fmt.Sprint(time.Duration(r) * time.Second)
 		alert("Retrigger in: "+s, bot, chatID)
-		ping()
+		//ping()
 		time.AfterFunc(30*time.Second, ping)
 		time.Sleep(time.Duration(r) * time.Second)
 	}
@@ -170,14 +154,6 @@ func alert(msg string, bot *tgbotapi.BotAPI, chatID int64) {
 	telegramMsg := tgbotapi.NewMessage(chatID, msg)
 	bot.Send(telegramMsg)
 	log.Println("Sent message to " + strconv.FormatInt(chatID, 10) + ": " + msg)
-}
-
-func loadEnvironmentalVariables() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Print("Error loading environmental variables: ")
-		log.Fatal(err.Error())
-	}
 }
 
 func fetchCookies() (*http.Cookie) {
