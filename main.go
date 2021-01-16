@@ -56,16 +56,12 @@ func main() {
 			book(os.Getenv("ACCOUNT_ID"), validSlot, sessionID, client)
 			alert("Slot available (and booked) on " + validSlot.Date.Format("2 Jan 2006 (Mon)") + " " + os.Getenv("SESSION_"+validSlot.SessionNumber), bot, chatID)
 		}
-		if len(valids) != 0 {
-			alert("Finished getting slots", bot, chatID)
-		}
-
 		log.Println("Finished getting slots")
 
 		//Sleep for a random duration
 		r := rand.Intn(300) + 120
-		//s := fmt.Sprint(time.Duration(r) * time.Second)
-		//alert("Retrigger in: "+s, bot, chatID)
+		s := fmt.Sprint(time.Duration(r) * time.Second)
+		alert("Retrigger in: "+s, bot, chatID)
 		//time.AfterFunc(30*time.Second, ping)
 		time.Sleep(time.Duration(r) * time.Second)
 	}
